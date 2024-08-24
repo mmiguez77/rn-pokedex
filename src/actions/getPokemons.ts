@@ -1,6 +1,7 @@
 import { axiosInstance } from "../config/api/axiosInstance";
 import type { Pokemon } from "../domain/entities/Pokemon";
 import type { PokeAPIPaginatedResponse, PokeAPIPokemon } from "../infrastructure/interfaces/pokeapi.interfaces";
+import { PokemonMapper } from "../infrastructure/mappers/pokemon.mapper";
 
 
 export const getPokemons = async (page: number, limit: number = 20):Promise<Pokemon[]> => {
@@ -14,9 +15,10 @@ export const getPokemons = async (page: number, limit: number = 20):Promise<Poke
       return axiosInstance.get<PokeAPIPokemon>(result.url);
     });
 
-    const pokemons = await Promise.all(pokemonPromises);
+    const PokeAPIPokemons = await Promise.all(pokemonPromises);
+    const pokemonsPromises = PokeAPIPokemons.map( (pokemon) => PokemonMapper.pokeApiPokemonToEntity(pokemon.data) );
 
-    return [];
+    return await Promise.all(pokemonsPromises);
 
   } catch (error) {
     throw new Error("Error getting pokemons");
